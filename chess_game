@@ -1,0 +1,263 @@
+#Here's the complete code for the updated ChessGame class with the movement of pawns, bishops, and kings:
+#be familier with positions & cell namings  inorder to play this
+
+class ChessGame:
+    def __init__(self):
+        self.board = self.initialize_board()
+        self.current_player = 'white'
+        self.game_over = False
+
+    def initialize_board(self):
+        # Initialize an 8x8 board with pieces in their starting positions
+        board = [
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
+        ]
+        return board
+
+    def display_board(self):
+        # Display the current state of the board
+        for row in self.board:
+            print(" | ".join(row))
+            print("-"*30)
+
+    def move_piece(self, start_pos, end_pos):
+        # Check if the move is valid and update the board accordingly
+        start_row, start_col = self.convert_position(start_pos)
+        end_row, end_col = self.convert_position(end_pos)
+        
+        piece = self.board[start_row][start_col]
+        
+        # Check if the piece is a pawn
+        if piece.lower() == 'p':
+            # White pawn moves upward
+            if self.current_player == 'white':
+                # First move, can move 2 squares
+                if start_row == 6 and end_row == 4 and start_col == end_col and self.board[5][end_col] == ' ' and self.board[4][end_col] == ' ':
+                    self.board[4][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Move forward one square
+                elif end_row == start_row - 1 and end_col == start_col and self.board[end_row][end_col]==' ':
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Capture diagonally left
+                elif end_row == start_row - 1 and end_col == start_col - 1 and self.board[end_row][end_col].isupper():
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Capture diagonally right
+                elif end_row == start_row - 1 and end_col == start_col + 1 and self.board[end_row][end_col].isupper():
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                else:
+                    print("Invalid move for pawn")
+                    return False
+            # Black pawn moves downward
+            else:
+                # First move, can move 2 squares
+                if start_row == 1 and end_row == 3 and start_col == end_col and self.board[2][end_col] == ' ' and self.board[3][end_col] == ' ':
+                    self.board[3][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Move forward one square
+                elif end_row == start_row + 1 and end_col == start_col and self.board[end_row][end_col]==' ':
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Capture diagonally left
+                elif end_row == start_row + 1 and end_col == start_col - 1 and self.board[end_row][end_col].islower():
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                # Capture diagonally right
+                elif end_row == start_row + 1 and end_col == start_col + 1 and self.board[end_row][end_col].islower():
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                else:
+                    print("Invalid move for pawn")
+                    return False
+        
+        # Check if the piece is a king
+        elif piece.lower() == 'k':
+            # Check if the move is valid for the king
+            if abs(end_row - start_row) <= 1 and abs(end_col - start_col) <= 1:
+                # Check if the destination square is empty or occupied by an opponent's piece
+                if self.board[end_row][end_col] == ' ' or (self.board[end_row][end_col].islower() != piece.islower()):
+                    # Update the board with the king's move
+                    self.board[end_row][end_col] = piece
+                    self.board[start_row][start_col] = ' '
+                    return True
+                else:
+                    print("Invalid move for king: destination square is occupied by own piece")
+                    return False
+            else:
+                print("Invalid move for king: can only move one square in any direction")
+                return False
+        
+        # Check if the piece is a bishop
+        elif piece.lower() == 'b':
+            # Check if the move is diagonally
+            if abs(end_row - start_row) == abs(end_col - start_col):
+                # Check if there are any pieces blocking the bishop's path
+                if not self.is_path_blocked_bishop(start_row, start_col, end_row, end_col):
+                    # Check if the destination square is empty or has an opponent's piece
+                    if self.board[end_row][end_col] == ' ' or (piece.islower() != self.board[end_row][end_col].islower()):
+                        self.board[end_row][end_col] = piece
+                        self.board[start_row][start_col] = ' '
+                        return True
+                    else:
+                        print("Invalid move: Cannot capture own piece")
+                        return False
+                else:
+                    print("Invalid move: Path is blocked")
+                    return False
+            else:
+                print("Invalid move: Bishop can only move diagonally")
+                return False
+        
+        else:
+            print("Moving this piece is not yet implemented.")
+            return False
+        
+    def is_path_blocked_bishop(self, start_row, start_col, end_row, end_col):
+        # Check if there are any pieces blocking the path between start and end positions
+        # Diagonal movement, so check for any pieces in the diagonals
+        delta_row = 1 if end_row > start_row else -1
+        delta_col = 1 if end_col > start_col else -1
+        row = start_row + delta_row
+        col = start_col + delta_col
+        while row != end_row and col != end_col:
+            if self.board[row][col] != ' ':
+                return True
+            row += delta_row
+            col += delta_col
+        return False
+
+    def convert_position(self, pos):
+        # Convert position from algebraic notation to matrix indices
+        row = 8 - int(pos[1])
+        col = ord(pos[0].lower()) - ord('a')
+        return row, col
+
+    def switch_player(self):
+        # Switch between white and black player
+        if self.current_player == 'white':
+            self.current_player = 'black'
+        else:
+            self.current_player = 'white'
+
+    def play_game(self):
+        while not self.game_over:
+            self.display_board()
+            start_pos = input(f"Enter the start position for {self.current_player}: ")
+            end_pos = input("Enter the end position: ")
+
+            # Make the move
+            if self.move_piece(start_pos, end_pos):
+                if self.is_checkmate():
+                    print("Checkmate! " + self.current_player + " wins!")
+                    self.game_over = True
+                else:
+                    self.switch_player()
+            else:
+                print("Invalid move! Try again.")
+
+    def is_checkmate(self):
+        # Check if the current player is in checkmate
+        king_pos = self.find_king(self.current_player)
+        if king_pos:
+            # Check if the king can move to any empty square or capture the threatening piece
+            king_row, king_col = king_pos
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if i == 0 and j == 0:
+                        continue
+                    new_row, new_col = king_row + i, king_col + j
+                    if 0 <= new_row < 8 and 0 <= new_col < 8:
+                        if self.board[new_row][new_col] == ' ' or self.board[new_row][new_col].islower() != self.current_player.islower():
+                            temp_piece = self.board[new_row][new_col]
+                            self.board[new_row][new_col] = self.board[king_row][king_col]
+                            self.board[king_row][king_col] = ' '
+                            if not self.is_king_in_check(self.current_player):
+                                self.board[king_row][king_col] = self.board[new_row][new_col]
+                                self.board[new_row][new_col] = temp_piece
+                                return False
+                            self.board[king_row][king_col] = self.board[new_row][new_col]
+                            self.board[new_row][new_col] = temp_piece
+            # Check if any friendly pieces can block the check
+            for row in range(8):
+                for col in range(8):
+                    if self.board[row][col].islower() == self.current_player.islower():
+                        if self.can_piece_block_threat(row, col, king_row, king_col):
+                            return False
+            return True
+        return False
+
+    def find_king(self, player):
+        # Find the position of the king for the given player
+        for row in range(8):
+            for col in range(8):
+                if self.board[row][col].lower() == 'k' and self.board[row][col].islower() == player.islower():
+                    return row, col
+        return None
+
+    def is_king_in_check(self, player):
+        # Check if the king of the given player is in check
+        king_pos = self.find_king(player)
+        if king_pos:
+            king_row, king_col = king_pos
+            opponent = 'white' if player == 'black' else 'black'
+            for row in range(8):
+                for col in range(8):
+                    if self.board[row][col].islower() == opponent.islower():
+                        if self.is_valid_move((row, col), king_pos):
+                            return True
+        return False
+
+    def can_piece_block_threat(self, piece_row, piece_col, king_row, king_col):
+        # Check if the piece at (piece_row, piece_col) can block the threat to the king at (king_row, king_col)
+        piece = self.board[piece_row][piece_col]
+        for row in range(8):
+            for col in range(8):
+                if self.is_valid_move((piece_row, piece_col), (row, col)):
+                    temp_piece = self.board[row][col]
+                    self.board[row][col] = piece
+                    self.board[piece_row][piece_col] = ' '
+                    if not self.is_king_in_check(self.current_player):
+                        self.board[piece_row][piece_col] = piece
+                        self.board[row][col] = temp_piece
+                        return True
+                    self.board[piece_row][piece_col] = piece
+                    self.board[row][col] = temp_piece
+        return False
+
+    def is_valid_move(self, start_pos, end_pos):
+        # Check if the move from start_pos to end_pos is valid
+        start_row, start_col = start_pos
+        end_row, end_col = end_pos
+        piece = self.board[start_row][start_col]
+        # Check if the end position is within the board
+        if end_row < 0 or end_row > 7 or end_col < 0 or end_col > 7:
+            return False
+        # Check if the start and end positions are different
+        if start_row == end_row and start_col == end_col:
+            return False
+        # Check if the piece belongs to the current player
+        if piece.islower() != self.current_player.islower():
+            return False
+        return True
+
+if __name__ == "__main__":
+    game = ChessGame()
+    print(" Consider the samall letters as WHITE Player : \n \n ")
+    game.play_game()
